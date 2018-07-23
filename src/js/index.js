@@ -4,6 +4,10 @@ import loader from './loader'
 import MenuState from './states/menu.state';
 import WorldState from './states/world.state';
 
+Number.prototype.clamp = function(min, max) {
+    return Math.min(Math.max(this, min), max);
+};
+
 let type = "WebGL"
 if(!PIXI.utils.isWebGLSupported()){
     type = "canvas"
