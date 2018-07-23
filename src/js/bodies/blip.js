@@ -6,6 +6,8 @@ export default class Planet extends Body {
         super(container, dim);
 
         this.planet = planet;
+        this.orbitalRange = this.planet.orbitalRange;
+        this.orbitalRangeVariance = 20;
         this.sprite = new Sprite(PIXI.loader.resources['circle'].texture);
         this.sprite.tint = tint;
         this.sprite.anchor.set(0.5,0.5);
@@ -27,6 +29,7 @@ export default class Planet extends Body {
     }
     init(){
         setInterval(this.convertPlanet.bind(this),1000);
+        setInterval(this.updateOrbitalRange.bind(this),10000);
         this.activate();
         return super.init();
     }
@@ -45,14 +48,24 @@ export default class Planet extends Body {
         this.speed = (this.planet.orbitalRange/h).clamp(1,7);
         
         let arc = Math.atan2(dx,dy)
-        if(h > this.planet.orbitalRange) arc-=(h/this.planet.orbitalRange).clamp(0,Math.PI/2);
+        if(h > this.orbitalRange) arc-=(h/this.orbitalRange).clamp(0,Math.PI/32);
+        if(h < this.orbitalRange) arc+=(h/this.orbitalRange).clamp(0,Math.PI/32);
 
         this.velocity.x = -Math.sin(arc+(Math.PI/2))*this.speed;
         this.velocity.y = -Math.cos(arc+(Math.PI/2))*this.speed;
         
     }
-    convertPlanet(){
+    updateOrbitalRange(){
         if(this.active){
+            this.orbitalRange = Math.floor(Math.random()*((this.planet.orbitalRange+this.orbitalRangeVariance)-(this.planet.orbitalRange-this.orbitalRangeVariance)+1)+(this.planet.orbitalRange-this.orbitalRangeVariance));
+        }
+    }
+    convertPlanet(){
+        let dx = this.x - this.planet.x;
+        let dy = this.y - this.planet.y;
+        let h = Math.sqrt((dx*dx)+(dy*dy));
+
+        if(this.active && h < this.planet.orbitalRange+this.orbitalRangeVariance){
             this.planet.convert(1);
         }
     }

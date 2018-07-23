@@ -1,5 +1,6 @@
 import Body from './body'
 import { Sprite } from 'pixi.js';
+import PlanetContext from './planetContext';
 import Blip from './blip';
 
 export default class Planet extends Body {
@@ -7,7 +8,8 @@ export default class Planet extends Body {
         super(container, dim);
 
         this.sprite = new Sprite(PIXI.loader.resources['circle'].texture);
-        this.sprite.tint = 0xe5e5e5;
+        this.originalTint = 0xe5e5e5;
+        this.sprite.tint = this.originalTint;
         this.sprite.anchor.set(0.5,0.5);
         this.sprite.x = pos.x;
         this.sprite.y = pos.y;
@@ -16,10 +18,11 @@ export default class Planet extends Body {
 
         this.ready = false;
         this.mainPlanet = mainPlanet;
+        this.transferDestination = null;
 
         this.container.addChild(this.sprite);
 
-        this.orbitalRange = 80;
+        this.orbitalRange = 70;
         this.maxBlips = 10;
         this.blips = []
         this.blipTint = 0xf4adc7;
@@ -27,9 +30,26 @@ export default class Planet extends Body {
         this.conversion = 0;
         this.maxConversion = 100;
 
+        this.context = new PlanetContext(this.container, this)
     }
     init(){
-        if(this.mainPlanet) this.addBlip();
+        setInterval(()=>{
+            if(this.blips.length <= 0){
+                this.convert(-1);
+            }
+        },1000);
+        if(this.mainPlanet){
+            this.addBlip();
+            this.context.update([
+                {
+                    action: ()=>{
+                        if(this.blips.length>0) this.transferBlip(this.transferDestination);
+                        this.context.hide();
+                    },
+                    tint: 0xaef9be
+                },
+            ]);
+        }
         return super.init();
     }
     activate(){
@@ -46,31 +66,75 @@ export default class Planet extends Body {
     }
     onMousedown(){
         super.onMousedown();
-        if(this.ready){
-            this.addBlip();
-        }
+        this.context.show();
     }
     update(){
         for(const blip of this.blips){
             blip.update();
         }
     }
+    setTranferDestination(destination){
+        this.transferDestination = destination;
+    }
     convert(amt){
-        if(this.conversion < this.maxConversion){
+        if(this.conversion < this.maxConversion && this.conversion+amt >= 0 ){
             this.conversion += amt;
-            this.sprite.tint = this.findGradient(0xe5e5e5, this.blipTint, this.conversion/this.maxConversion);
+            this.sprite.tint = this.findGradient(this.originalTint, this.blipTint, this.conversion/this.maxConversion);
         } else if(!this.ready && this.conversion >= this.maxConversion){
             this.sprite.tint = this.blipTint;
             this.ready = true;
-            console.log('READY');
+            if(this.blips.length < this.maxBlips){
+                this.context.update([
+                    {
+                        action: ()=>{
+                            if(this.ready) this.addBlip();
+                            this.context.hide();
+                        },
+                        tint: this.blipTint
+                    },
+                    {
+                        action: ()=>{
+                            if(this.blips.length>0) this.transferBlip(this.transferDestination);
+                            this.context.hide();
+                        },
+                        tint: 0xaef9be
+                    },
+                ]);
+            } else if(this.blips.length > 0){
+                this.context.update([
+                    {
+                        action: ()=>{
+                            if(this.blips.length>0) this.transferBlip(this.transferDestination);
+                            this.context.hide();
+                        },
+                        tint: 0xaef9be
+                    },
+                ]);
+            }
+        }
+    }
+    transferBlip(destination){
+        if(destination && this.blips.length > 0){
+            let blipToGo = this.blips.shift();
+            blipToGo.planet = destination;
+            destination.blips.push(blipToGo);
         }
     }
     addBlip(){
         if(this.blips.length < this.maxBlips){
             this.conversion = 0;
             this.ready = false;
-            this.sprite.tint = 0xe5e5e5;
+            this.sprite.tint = this.originalTint;
             this.blips.push(new Blip(this.container, this, { height: 8, width: 8 }, this.blipTint).init());
+            this.context.update([
+                {
+                    action: ()=>{
+                        if(this.blips.length>0) this.transferBlip(this.transferDestination);
+                        this.context.hide();
+                    },
+                    tint: 0xaef9be
+                },
+            ]);
         }
     }
 
