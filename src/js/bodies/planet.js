@@ -116,7 +116,7 @@ export default class Planet extends Body {
     transferBlip(destination){
         if(destination && this.blips.length > 0){
             let blipToGo = this.blips.shift();
-            blipToGo.planet = destination;
+            blipToGo.transfer(destination);
             destination.blips.push(blipToGo);
         }
     }

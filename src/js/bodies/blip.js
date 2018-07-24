@@ -6,6 +6,7 @@ export default class Planet extends Body {
         super(container, dim);
 
         this.planet = planet;
+        this.transfering = false;
         this.orbitalRange = this.planet.orbitalRange;
         this.orbitalRangeVariance = 20;
         this.sprite = new Sprite(PIXI.loader.resources['circle'].texture);
@@ -39,33 +40,33 @@ export default class Planet extends Body {
     deactivate(){
         this.active = false;
     }
+    transfer(destination){
+        this.transfering = true;
+        this.planet = destination;
+    }
     update(){
         this.sprite.x+=this.velocity.x;
         this.sprite.y+=this.velocity.y;
         let dx = this.x - this.planet.x;
         let dy = this.y - this.planet.y;
         let h = Math.sqrt((dx*dx)+(dy*dy));
+        this.inOrbitalRange = h < this.planet.orbitalRange+this.orbitalRangeVariance;
+        if(this.inOrbitalRange && this.transfering){
+            this.transfering = false;
+        }
         this.speed = (this.planet.orbitalRange/h).clamp(1,7);
         
-        let arc = Math.atan2(dx,dy)
-        if(h > this.orbitalRange) arc-=(h/this.orbitalRange).clamp(0,Math.PI/32);
-        if(h < this.orbitalRange) arc+=(h/this.orbitalRange).clamp(0,Math.PI/32);
-
-        this.velocity.x = -Math.sin(arc+(Math.PI/2))*this.speed;
-        this.velocity.y = -Math.cos(arc+(Math.PI/2))*this.speed;
-        
+        let arc = (h > this.orbitalRange) ? Math.atan2(dx,dy)+(Math.PI/2)-((Math.PI/32)*(h/this.orbitalRange)) : Math.atan2(dx,dy)+(Math.PI/2)+((Math.PI/32)*(h/this.orbitalRange))
+        this.velocity.x = -Math.sin(arc)*this.speed;
+        this.velocity.y = -Math.cos(arc)*this.speed;
     }
     updateOrbitalRange(){
-        if(this.active){
+        if(this.active && !this.transfering){
             this.orbitalRange = Math.floor(Math.random()*((this.planet.orbitalRange+this.orbitalRangeVariance)-(this.planet.orbitalRange-this.orbitalRangeVariance)+1)+(this.planet.orbitalRange-this.orbitalRangeVariance));
         }
     }
     convertPlanet(){
-        let dx = this.x - this.planet.x;
-        let dy = this.y - this.planet.y;
-        let h = Math.sqrt((dx*dx)+(dy*dy));
-
-        if(this.active && h < this.planet.orbitalRange+this.orbitalRangeVariance){
+        if(this.active && !this.transfering){
             this.planet.convert(1);
         }
     }
