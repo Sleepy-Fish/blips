@@ -31,6 +31,9 @@ export default class PlanetContext {
     get visible(){
         return this.shown;
     }
+    get status(){
+        return this.actions.map(x => x.name).filter(x => x!=='close');
+    }
     update(actions){
         this.context.children = [];
         this.actions = [];
@@ -38,6 +41,7 @@ export default class PlanetContext {
         for(let i in actions){
             this.actions.push(new ContextAction(
                 this.context,
+                actions[i].name,
                 { x: this.planet.x + this.distanceFromPlanet*Math.cos(arc), y: this.planet.y + this.distanceFromPlanet*Math.sin(arc) },
                 { width: 20, height: 20 },
                 actions[i].tint,
@@ -47,6 +51,7 @@ export default class PlanetContext {
         }
         this.actions.push(new ContextAction(
             this.context,
+            'close',
             { x: this.planet.x + this.distanceFromPlanet*Math.cos(arc), y: this.planet.y + this.distanceFromPlanet*Math.sin(arc) },
             { width: 20, height: 20 },
             this.planet.originalTint,

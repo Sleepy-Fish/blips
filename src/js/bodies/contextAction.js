@@ -2,8 +2,10 @@ import Body from './body'
 import { Sprite } from 'pixi.js';
 
 export default class ContextAction extends Body {
-    constructor(container, pos, dim, tint, action){
+    constructor(container, name, pos, dim, tint, action){
         super(container, dim);
+
+        this._name = name;
 
         this.sprite = new Sprite(PIXI.loader.resources['circle'].texture);
         this.sprite.tint = tint;
@@ -19,6 +21,9 @@ export default class ContextAction extends Body {
     }
     init(){
         return super.init();
+    }
+    get name(){
+        return this._name;
     }
     activate(){
         this.active = true;

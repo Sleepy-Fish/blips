@@ -53,6 +53,7 @@ export default class Planet extends Body {
         this.inOrbitalRange = h < this.planet.orbitalRange+this.orbitalRangeVariance;
         if(this.inOrbitalRange && this.transfering){
             this.transfering = false;
+            this.planet.addContext('transfer');
         }
         this.speed = (this.planet.orbitalRange/h).clamp(1,7);
         

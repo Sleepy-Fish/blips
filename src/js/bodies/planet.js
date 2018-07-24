@@ -31,6 +31,24 @@ export default class Planet extends Body {
         this.maxConversion = 100;
 
         this.context = new PlanetContext(this.container, this)
+        this.contextOptions = {
+            'spawn':{
+                name: 'spawn',
+                action: ()=>{
+                    if(this.ready) this.addBlip();
+                    this.context.hide();
+                },
+                tint: this.blipTint
+            },
+            'transfer':{
+                name: 'transfer',
+                action: ()=>{
+                    if(this.blips.length>0) this.transferBlip(this.transferDestination);
+                    this.context.hide();
+                },
+                tint: 0xaef9be
+            },
+        };
     }
     init(){
         setInterval(()=>{
@@ -40,17 +58,47 @@ export default class Planet extends Body {
         },1000);
         if(this.mainPlanet){
             this.addBlip();
-            this.context.update([
-                {
-                    action: ()=>{
-                        if(this.blips.length>0) this.transferBlip(this.transferDestination);
-                        this.context.hide();
-                    },
-                    tint: 0xaef9be
-                },
-            ]);
+            this.addContext('transfer');
         }
         return super.init();
+    }
+    addContext(...args){
+        let currentContext = this.context.status;
+        let updated = false;
+        for(let arg of args){
+            if(!currentContext.includes(arg)) {
+                currentContext.unshift(arg)
+                updated = true;
+            }
+        }
+        if(updated){
+            let newContext = [];
+            for(let item of currentContext){
+                newContext.push(this.contextOptions[item]);
+            }
+            this.context.update(newContext);
+        }
+    }
+    removeContext(...args){
+        let currentContext = this.context.status;
+        let updated = false;
+        let doomed = [];
+        for(let i in args){
+            if(currentContext.includes(args[i])) {
+                doomed.push(i)
+                updated = true;
+            }
+        }
+        if(updated){
+            for(let i in doomed){
+                delete currentContext[i];
+            }
+            let newContext = [];
+            for(let item of currentContext.filter(x => !!x)){
+                newContext.push(this.contextOptions[item]);
+            }
+            this.context.update(newContext);
+        }
     }
     activate(){
         this.active = true;
@@ -84,32 +132,7 @@ export default class Planet extends Body {
             this.sprite.tint = this.blipTint;
             this.ready = true;
             if(this.blips.length < this.maxBlips){
-                this.context.update([
-                    {
-                        action: ()=>{
-                            if(this.ready) this.addBlip();
-                            this.context.hide();
-                        },
-                        tint: this.blipTint
-                    },
-                    {
-                        action: ()=>{
-                            if(this.blips.length>0) this.transferBlip(this.transferDestination);
-                            this.context.hide();
-                        },
-                        tint: 0xaef9be
-                    },
-                ]);
-            } else if(this.blips.length > 0){
-                this.context.update([
-                    {
-                        action: ()=>{
-                            if(this.blips.length>0) this.transferBlip(this.transferDestination);
-                            this.context.hide();
-                        },
-                        tint: 0xaef9be
-                    },
-                ]);
+                this.addContext('spawn');
             }
         }
     }
@@ -119,6 +142,9 @@ export default class Planet extends Body {
             blipToGo.transfer(destination);
             destination.blips.push(blipToGo);
         }
+        if(this.blips.length <= 0){
+            this.removeContext('transfer');
+        }
     }
     addBlip(){
         if(this.blips.length < this.maxBlips){
@@ -126,15 +152,7 @@ export default class Planet extends Body {
             this.ready = false;
             this.sprite.tint = this.originalTint;
             this.blips.push(new Blip(this.container, this, { height: 8, width: 8 }, this.blipTint).init());
-            this.context.update([
-                {
-                    action: ()=>{
-                        if(this.blips.length>0) this.transferBlip(this.transferDestination);
-                        this.context.hide();
-                    },
-                    tint: 0xaef9be
-                },
-            ]);
+            this.removeContext('spawn');
         }
     }
 
