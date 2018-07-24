@@ -27,7 +27,7 @@ jobs:
       - attach_workspace:
           at: .
       - deploy:
-          command: scp -oStrictHostKeyChecking=no -r . circleci@sleepy.fish:/var/www/sleepy.fish/blips
+          command: scp -oStrictHostKeyChecking=no -r . circleci@sleepy.fish:/var/www/blips.sleepy.fish
 workflows:
   version: 2
   launch:
