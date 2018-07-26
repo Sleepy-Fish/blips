@@ -148,6 +148,13 @@ export default class Planet extends Body {
                     blip = null;
                 })
                 this.level++;
+                this.diameter += 10;
+                this.sprite.width = this.diameter;
+                this.sprite.height = this.diameter;
+                this.conversion = 0;
+                this.maxConversion += 100;
+                this.maxBlips += 5;
+                this.orbitalRange += 10;
                 this.blips = [];
                 setTimeout(this.addBlip.bind(this),1000)
                 this.upgrading = false;
