@@ -5,7 +5,7 @@ export default class WorldState extends GameState{
     constructor(app){
         super(app);
         this.planet = new Planet(this.scene, {
-            position:{x:200, y: 500},
+            position:{x:200, y: 300},
             diameter: 50,
             tint: 0xe5e5e5
         });
