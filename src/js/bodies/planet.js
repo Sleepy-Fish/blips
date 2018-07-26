@@ -120,12 +120,13 @@ export default class Planet extends Body {
             this.conversion = 0;
             this.ready = false;
             this.sprite.tint = this.originalTint;
-            this.blips.push(new Blip(this.container, this, {
-                    position:{x:this.x, y: this.y},
-                    diameter: 8,
-                    tint: this.blipTint
-                })
-            );
+            let newBlip = new Blip(this.container, this, {
+                position:{x:this.x, y: this.y},
+                diameter: 8,
+                tint: this.blipTint
+            });
+            if(this.active) newBlip.activate();
+            this.blips.push(newBlip);
             this.addContext('transfer');
             this.removeContext('spawn');
             if(this.blips.length >= this.levelCost){

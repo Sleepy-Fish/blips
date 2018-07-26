@@ -64,6 +64,7 @@ export default class Blip extends Body {
         
     }
     convertPlanet(){
+        console.log(this.active);
         if(this.active && !this.transfering && !this.desroying){
             this.planet.convert(1);
         }
