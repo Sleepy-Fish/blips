@@ -4,11 +4,21 @@ import Planet from '../bodies/planet';
 export default class WorldState extends GameState{
     constructor(app){
         super(app);
-        this.planet = new Planet(this.scene, { x: 300, y: 400 }, { width: 50, height: 50 }, true).init();
-        this.otherPlanet = new Planet(this.scene, { x: 700, y: 400 }, { width: 50, height: 50 }, false).init();
+        this.planet = new Planet(this.scene, {
+            position:{x:200, y: 500},
+            diameter: 50,
+            tint: 0xe5e5e5
+        });
+        this.otherPlanet = new Planet(this.scene, {
+            position:{x:400, y: 100},
+            diameter: 50,
+            tint: 0xe5e5e5
+        });
 
         this.planet.setTranferDestination(this.otherPlanet);
         this.otherPlanet.setTranferDestination(this.planet);
+
+        this.planet.addBlip();
     }
     run(delta){
         super.run(delta);

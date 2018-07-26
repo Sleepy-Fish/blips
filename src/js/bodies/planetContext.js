@@ -1,4 +1,3 @@
-import { Sprite } from 'pixi.js';
 import ContextAction from './contextAction';
 
 export default class PlanetContext {
@@ -42,20 +41,24 @@ export default class PlanetContext {
             this.actions.push(new ContextAction(
                 this.context,
                 actions[i].name,
-                { x: this.planet.x + this.distanceFromPlanet*Math.cos(arc), y: this.planet.y + this.distanceFromPlanet*Math.sin(arc) },
-                { width: 20, height: 20 },
-                actions[i].tint,
-                actions[i].action
-            ).init());
+                actions[i].action,
+                {
+                    position: { x: this.planet.x + this.distanceFromPlanet*Math.cos(arc), y: this.planet.y + this.distanceFromPlanet*Math.sin(arc) },
+                    diameter: 20,
+                    tint: actions[i].tint
+                }
+            ));
             arc+=this.distanceBetweenActions;
         }
         this.actions.push(new ContextAction(
             this.context,
             'close',
-            { x: this.planet.x + this.distanceFromPlanet*Math.cos(arc), y: this.planet.y + this.distanceFromPlanet*Math.sin(arc) },
-            { width: 20, height: 20 },
-            this.planet.originalTint,
-            this.hide.bind(this)
-        ).init());
+            this.hide.bind(this),
+            {
+                position: { x: this.planet.x + this.distanceFromPlanet*Math.cos(arc), y: this.planet.y + this.distanceFromPlanet*Math.sin(arc) },
+                diameter: 20,
+                tint: this.planet.originalTint
+            }
+        ));
     }
 }

@@ -1,81 +1,33 @@
-import config from '../data/planet-config';
+import contextOptions from '../data/planet-context-options';
 import Body from './body'
-import { Sprite } from 'pixi.js';
 import PlanetContext from './planetContext';
 import Blip from './blip';
 
 
 export default class Planet extends Body {
-    constructor(container, pos, dim, mainPlanet){
-        super(container, dim);
+    constructor(container, options){
+        super(container, options);
 
         this.level = 0;
-        this.levelCost = config.levels[this.level].levelCost;
-        this.maxLevel = config.levels.length
+        this.levelCost = 10;
+        this.maxLevel = 3
         this.upgrading = false;
-        this.originalTint = config.baseTint;
-
-        this.sprite = new Sprite(PIXI.loader.resources['circle'].texture);
-        this.sprite.tint = this.originalTint;
-        this.sprite.anchor.set(0.5,0.5);
-        this.sprite.x = pos.x;
-        this.sprite.y = pos.y;
-        this.sprite.width = config.levels[this.level].diameter;
-        this.sprite.height = config.levels[this.level].diameter;
+        this.originalTint = this.sprite.tint;
         
         this.ready = false;
-        this.mainPlanet = mainPlanet;
         this.transferDestination = null;
 
-        this.container.addChild(this.sprite);
-
-        this.orbitalRange = config.levels[this.level].orbitalRange;
-        this.maxBlips = config.levels[this.level].maxBlips;
+        this.orbitalRange = 70;
+        this.maxBlips = 10
         this.blips = []
         this.blipTint = 0xf4adc7;
 
         this.conversion = 0;
-        this.maxConversion = config.levels[this.level].maxConversion;
+        this.maxConversion = 10;
 
         this.context = new PlanetContext(this.container, this)
-        this.contextOptions = {
-            'spawn':{
-                name: 'spawn',
-                action: ()=>{
-                    if(this.ready) this.addBlip();
-                    this.context.hide();
-                },
-                tint: this.blipTint
-            },
-            'transfer':{
-                name: 'transfer',
-                action: ()=>{
-                    if(this.blips.length>0) this.transferBlip(this.transferDestination);
-                    this.context.hide();
-                },
-                tint: 0xaef9be
-            },
-            'upgrade':{
-                name: 'upgrade',
-                action: ()=>{
-                    if(this.level < this.maxLevel) this.upgrade();
-                    this.context.hide();
-                },
-                tint: 0x93bcff
-            },
-        };
-    }
-    init(){
-        setInterval(()=>{
-            if(this.blips.length <= 0){
-                this.convert(-1);
-            }
-        },1000);
-        if(this.mainPlanet){
-            this.addBlip();
-            this.addContext('transfer');
-        }
-        return super.init();
+        this.contextOptions = contextOptions(this);
+        this.loseConversionInterval = setInterval(()=>{ if(this.blips.length <= 0) this.convert(-1); },1000);
     }
     addContext(...args){
         let currentContext = this.context.status;
@@ -168,7 +120,12 @@ export default class Planet extends Body {
             this.conversion = 0;
             this.ready = false;
             this.sprite.tint = this.originalTint;
-            this.blips.push(new Blip(this.container, this, { height: 8, width: 8 }, this.blipTint).init());
+            this.blips.push(new Blip(this.container, this, {
+                    position:{x:this.x, y: this.y},
+                    diameter: 8,
+                    tint: this.blipTint
+                })
+            );
             this.addContext('transfer');
             this.removeContext('spawn');
             if(this.blips.length >= this.levelCost){
@@ -190,12 +147,6 @@ export default class Planet extends Body {
                     blip = null;
                 })
                 this.level++;
-                this.sprite.width = config.levels[this.level].diameter;
-                this.sprite.height = config.levels[this.level].diameter;
-                this.dimensions = {width: config.levels[this.level].diameter, height: config.levels[this.level].diameter};
-                this.maxBlips = config.levels[this.level].maxBlips;
-                this.orbitalRange = config.levels[this.level].orbitalRange;
-                this.maxConversion = config.levels[this.level].maxConversion;
                 this.blips = [];
                 setTimeout(this.addBlip.bind(this),1000)
                 this.upgrading = false;

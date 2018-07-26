@@ -1,44 +1,17 @@
 import Body from './body'
-import { Sprite } from 'pixi.js';
 
 export default class Blip extends Body {
-    constructor(container, planet, dim, tint){
-        super(container, dim);
-
+    constructor(container, planet, options){
+        super(container, options);
         this.planet = planet;
         this.transfering = false;
         this.desroying = false;
         this.orbitalRange = this.planet.orbitalRange;
         this.orbitalRangeVariance = 20;
-        this.sprite = new Sprite(PIXI.loader.resources['circle'].texture);
-        this.sprite.tint = tint;
-        this.sprite.anchor.set(0.5,0.5);
-        
-        let arc = Math.random()*2*Math.PI;
-        let initPos = {
-            x: this.planet.x+Math.cos(arc),
-            y: this.planet.y+Math.sin(arc),
-
-        }
-        this.sprite.x = initPos.x;
-        this.sprite.y = initPos.y;
         this.velocity = { x: 0, y: 0 };
-        this.sprite.width = dim.width;
-        this.sprite.height = dim.height;
-
-        this.container.addChild(this.sprite);
-    }
-    init(){
+        //Class intervals
         this.conversionInterval = setInterval(this.convertPlanet.bind(this),1000);
         this.updateOrbitalRangeInterval = setInterval(this.updateOrbitalRange.bind(this),10000);
-        this.activate();
-        return super.init();
-    }
-    activate(){
-        this.active = true;
-    }
-    deactivate(){
-        this.active = false;
     }
     transfer(destination){
         this.transfering = true;
