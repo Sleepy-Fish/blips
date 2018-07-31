@@ -17,6 +17,9 @@ let app = new PIXI.Application(window.innerWidth, window.innerHeight, config);
 window.addEventListener("resize", () => {
     app.renderer.resize(window.innerWidth, window.innerHeight);
 });
+window.addEventListener("contextmenu", e => {
+    e.preventDefault()
+});
 document.body.appendChild(app.view);
 
 loader(setup, progress);

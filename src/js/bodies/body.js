@@ -17,6 +17,8 @@ export default class Body {
         this.sprite.mouseout = this.onMouseout.bind(this);
         this.sprite.mousedown = this.onMousedown.bind(this);
         this.sprite.mouseup = this.onMouseup.bind(this);
+        this.sprite.rightdown = this.onRightMousedown.bind(this);
+        this.sprite.rightup = this.onRightMouseup.bind(this);
         this.container.addChild(this.sprite);
         this.active = false;
     }
@@ -41,9 +43,25 @@ export default class Body {
         this.sprite.width = this.diameter;
     }
     onMousedown(){
-        
+        this.holdTimer = setTimeout(this.onHold.bind(this),500);
+        this.held = false;
     }
     onMouseup(){
+        if(!this.held){
+            this.onClick.call(this);
+        }
+        clearTimeout(this.holdTimer);
+    }
+    onClick(){
+        
+    }
+    onHold(){
+        this.held = true;
+    }
+    onRightMousedown(){
+        
+    }
+    onRightMouseup(){
         
     }
     update(){

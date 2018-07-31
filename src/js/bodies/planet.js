@@ -5,9 +5,9 @@ import Blip from './blip';
 
 
 export default class Planet extends Body {
-    constructor(container, options){
+    constructor(state, container, options){
         super(container, options);
-
+        this.state = state;
         this.level = 0;
         this.levelCost = 10;
         this.maxLevel = 3
@@ -28,6 +28,8 @@ export default class Planet extends Body {
         this.context = new PlanetContext(this.container, this)
         this.contextOptions = contextOptions(this);
         this.loseConversionInterval = setInterval(()=>{ if(this.blips.length <= 0) this.convert(-1); },1000);
+
+        this.focused = false;
     }
     addContext(...args){
         let currentContext = this.context.status;
@@ -79,8 +81,24 @@ export default class Planet extends Body {
             blip.deactivate();
         }
     }
-    onMousedown(){
-        super.onMousedown();
+    onClick(){
+        super.onClick();
+        this.focus();
+    }
+    onHold(){
+        super.onHold();
+        this.context.show();
+    }
+    focus(){
+        for(let planet of this.state.planets){
+            planet.focused = false;
+        }
+        this.focused = true;
+        this.container.x = -this.x+window.innerWidth/2;
+        this.container.y = -this.y+window.innerHeight/2;
+    }
+    onRightMousedown(){
+        super.onRightMousedown();
         this.context.show();
     }
     update(){
