@@ -1,5 +1,6 @@
 import State from './state'
 import Button from '../ui/button'
+import 'pixi-sound';
 
 export default class GameState extends State {
     constructor(app){
@@ -7,6 +8,10 @@ export default class GameState extends State {
         this.fpsText = new PIXI.Text(Math.round(app.ticker.FPS));
         this.fpsText.x = 100;
         this.fpsText.y = 10;
+
+        this.loop = PIXI.sound.Sound.from(PIXI.loader.resources['loop']);
+        this.loop.loop = true;
+        
 
         this.backButton = new Button({
             text:'Back',
@@ -25,6 +30,11 @@ export default class GameState extends State {
     }
     activate(){
         super.activate();
+        this.loop.play();
         this.backButton.reset();
+    }
+    deactivate(){
+        super.deactivate();
+        this.loop.stop();
     }
 }

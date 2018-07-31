@@ -1,66 +1,33 @@
+import contextOptions from '../data/planet-context-options';
 import Body from './body'
-import { Sprite } from 'pixi.js';
 import PlanetContext from './planetContext';
 import Blip from './blip';
 
+
 export default class Planet extends Body {
-    constructor(container, pos, dim, mainPlanet){
-        super(container, dim);
+    constructor(container, options){
+        super(container, options);
 
-        this.sprite = new Sprite(PIXI.loader.resources['circle'].texture);
-        this.originalTint = 0xe5e5e5;
-        this.sprite.tint = this.originalTint;
-        this.sprite.anchor.set(0.5,0.5);
-        this.sprite.x = pos.x;
-        this.sprite.y = pos.y;
-        this.sprite.width = dim.width;
-        this.sprite.height = dim.height;
-
+        this.level = 0;
+        this.levelCost = 10;
+        this.maxLevel = 3
+        this.upgrading = false;
+        this.originalTint = this.sprite.tint;
+        
         this.ready = false;
-        this.mainPlanet = mainPlanet;
         this.transferDestination = null;
 
-        this.container.addChild(this.sprite);
-
         this.orbitalRange = 70;
-        this.maxBlips = 10;
+        this.maxBlips = 10
         this.blips = []
         this.blipTint = 0xf4adc7;
 
         this.conversion = 0;
-        this.maxConversion = 100;
+        this.maxConversion = 10;
 
         this.context = new PlanetContext(this.container, this)
-        this.contextOptions = {
-            'spawn':{
-                name: 'spawn',
-                action: ()=>{
-                    if(this.ready) this.addBlip();
-                    this.context.hide();
-                },
-                tint: this.blipTint
-            },
-            'transfer':{
-                name: 'transfer',
-                action: ()=>{
-                    if(this.blips.length>0) this.transferBlip(this.transferDestination);
-                    this.context.hide();
-                },
-                tint: 0xaef9be
-            },
-        };
-    }
-    init(){
-        setInterval(()=>{
-            if(this.blips.length <= 0){
-                this.convert(-1);
-            }
-        },1000);
-        if(this.mainPlanet){
-            this.addBlip();
-            this.addContext('transfer');
-        }
-        return super.init();
+        this.contextOptions = contextOptions(this);
+        this.loseConversionInterval = setInterval(()=>{ if(this.blips.length <= 0) this.convert(-1); },1000);
     }
     addContext(...args){
         let currentContext = this.context.status;
@@ -137,13 +104,15 @@ export default class Planet extends Body {
         }
     }
     transferBlip(destination){
-        if(destination && this.blips.length > 0){
+        if(destination && this.blips.length > 0 && destination.blips.length < destination.maxBlips){
             let blipToGo = this.blips.shift();
             blipToGo.transfer(destination);
             destination.blips.push(blipToGo);
         }
         if(this.blips.length <= 0){
             this.removeContext('transfer');
+        } else if(this.blips.length < this.maxBlips){
+            this.addContext('spawn');
         }
     }
     addBlip(){
@@ -151,8 +120,45 @@ export default class Planet extends Body {
             this.conversion = 0;
             this.ready = false;
             this.sprite.tint = this.originalTint;
-            this.blips.push(new Blip(this.container, this, { height: 8, width: 8 }, this.blipTint).init());
+            let newBlip = new Blip(this.container, this, {
+                position:{x:this.x, y: this.y},
+                diameter: 8,
+                tint: this.blipTint
+            });
+            if(this.active) newBlip.activate();
+            this.blips.push(newBlip);
+            this.addContext('transfer');
             this.removeContext('spawn');
+            if(this.blips.length >= this.levelCost){
+                this.addContext('upgrade');
+            }
+        }
+    }
+    upgrade(){
+        if(this.blips.length >= this.levelCost && this.level < this.maxLevel && !this.upgrading){
+            this.upgrading = true;
+            this.conversion = 0;
+            let destroyPromises = [];
+            for(let i = 0; i < this.levelCost; i++){
+                destroyPromises.push(this.blips[i].destroy());
+            }
+            this.removeContext('spawn', 'transfer', 'upgrade');
+            Promise.all(destroyPromises).then(response=>{
+                response.forEach(blip=>{
+                    blip = null;
+                })
+                this.level++;
+                this.diameter += 10;
+                this.sprite.width = this.diameter;
+                this.sprite.height = this.diameter;
+                this.conversion = 0;
+                this.maxConversion += 100;
+                this.maxBlips += 5;
+                this.orbitalRange += 10;
+                this.blips = [];
+                setTimeout(this.addBlip.bind(this),1000)
+                this.upgrading = false;
+            })
         }
     }
 
