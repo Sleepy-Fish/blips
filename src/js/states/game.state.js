@@ -5,6 +5,7 @@ import 'pixi-sound';
 export default class GameState extends State {
     constructor(app){
         super(app);
+        this.hud = new PIXI.Container()
         this.fpsText = new PIXI.Text(Math.round(app.ticker.FPS));
         this.fpsText.x = 100;
         this.fpsText.y = 10;
@@ -22,7 +23,20 @@ export default class GameState extends State {
         },()=>{
             window.game.setState('menu')
         });
-        this.scene.addChild(this.backButton.init, this.fpsText);
+
+        this.musicButton = new Button({
+            text:'Music',
+            x:45,
+            y: 80,
+            width:70,
+            height:40
+        },()=>{
+            this.loop.isPlaying ? this.loop.stop() : this.loop.play();
+        });
+
+        this.hud.addChild(this.backButton.init, this.musicButton.init, this.fpsText);
+        this.hud.visible = false;
+        app.stage.addChild(this.hud);
     }
     run(delta){
         super.run(delta);
@@ -30,11 +44,13 @@ export default class GameState extends State {
     }
     activate(){
         super.activate();
+        this.hud.visible = true;
         this.loop.play();
         this.backButton.reset();
     }
     deactivate(){
         super.deactivate();
+        this.hud.visible = false;
         this.loop.stop();
     }
 }

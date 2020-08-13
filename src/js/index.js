@@ -28,7 +28,7 @@ function progress(loader, resource){
     console.info(`${Math.round(loader.progress)}% Loaded`);
 }
 
-function setup(){
+function setup(loader, resources){
     window.game = {
         states:{
             menu: new MenuState(app),
